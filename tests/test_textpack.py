@@ -20,6 +20,20 @@ def test_slugify():
     assert MODULE.slugify("Europe’s AI Future: Different!") == "europes-ai-future-different"
 
 
+def test_promotes_flattened_section_headings():
+    source = (
+        "A complete introductory sentence.\n\n"
+        "Reliability is the key\n\n"
+        "A full paragraph follows the heading.\n\n"
+        "Where are baselines?\n\n"
+        "Another full paragraph follows."
+    )
+    result = MODULE.promote_section_headings(source)
+    assert "## Reliability is the key" in result
+    assert "## Where are baselines?" in result
+    assert "## A complete introductory sentence." not in result
+
+
 def test_extract_jsonld_article():
     article = {
         "@context": "https://schema.org",
