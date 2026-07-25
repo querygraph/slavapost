@@ -17,6 +17,14 @@ on:
         required: false
         default: Slava Tykhonov;Croissant, Graphs and AI;AI
         type: string
+      status:
+        description: Publish immediately or create a draft
+        required: true
+        default: published
+        type: choice
+        options:
+          - published
+          - draft
 
 permissions:
   contents: write
@@ -45,6 +53,18 @@ jobs:
         env:
           TEXTPACK: ${{ steps.convert.outputs.textpack }}
         run: python -m zipfile -t "$TEXTPACK"
+      - name: Publish to QueryGraph.ai
+        id: ghost
+        env:
+          GHOST_ADMIN_URL: ${{ secrets.GHOST_ADMIN_URL }}
+          GHOST_ADMIN_API_KEY: ${{ secrets.GHOST_ADMIN_API_KEY }}
+          POST_FILE: ${{ steps.convert.outputs.post_dir }}/post.md
+          STATUS: ${{ inputs.status }}
+        run: python scripts/ghost_publish.py "$POST_FILE" --status "$STATUS"
+      - name: Publication link
+        env:
+          GHOST_URL: ${{ steps.ghost.outputs.ghost_url }}
+        run: echo "Published at $GHOST_URL" >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.convert.outputs.slug }}-textpack
