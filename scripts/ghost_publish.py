@@ -67,7 +67,7 @@ class Ghost:
         # first import from becoming a permanent duplicate.
         by_source = [
             post for post in posts
-            if post.get("canonical_url", "").rstrip("/") == source_url.rstrip("/")
+            if str(post.get("canonical_url") or "").rstrip("/") == source_url.rstrip("/")
         ]
         if by_source:
             return by_source[0]
@@ -78,7 +78,7 @@ class Ghost:
         data = self.request("GET", "/users/", params={"limit": "all"})
         exact = [
             user for user in data.get("users", [])
-            if user.get("name", "").strip().casefold() == name.strip().casefold()
+            if str(user.get("name") or "").strip().casefold() == name.strip().casefold()
         ]
         if not exact:
             raise RuntimeError(
