@@ -156,6 +156,16 @@ def extract(html: str, source_url: str) -> dict:
         )
 
     body_md = re.sub(r"\n{3,}", "\n\n", body_md).strip()
+    # Ghost's theme already renders title, excerpt, author, date, and feature
+    # image. LinkedIn often wraps the prose in an <article> that begins with
+    # those same presentation elements. Its og:description is the first real
+    # paragraph, so use that as the strict content boundary.
+    if description:
+        start = body_md.find(description)
+        if start > 0:
+            body_md = body_md[start:].strip()
+    # Do not download author avatars or other LinkedIn chrome removed above.
+    images = [(url, alt) for url, alt in images if url in body_md]
     if len(re.sub(r"\s+", "", body_md)) < 500:
         raise RuntimeError("Extracted article body is suspiciously short; refusing partial output")
 
