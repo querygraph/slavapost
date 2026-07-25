@@ -11,13 +11,19 @@ archives that import directly into Omnighost (and Ulysses).
 4. Download the `.textpack` from the run's **Artifacts** section.
 
 The workflow also commits the canonical Markdown, downloaded images, metadata,
-and TextPack to `posts/<slug>/`. Re-running a URL updates the same directory.
+and TextPack to `posts/<slug>/`, then creates or updates the Ghost post by slug.
+Immediate publication is the default; choose `draft` in the run form when
+review is desirable.
 
 ## Automatic newsletter check
 
 `Check Slava newsletter` runs daily and follows article links discoverable from
 the configured seed edition. If it finds an edition not already under `posts/`,
-it imports and commits it. It can also be started manually from the Actions tab.
+it imports, publishes, and commits it. Its default status is controlled by
+`publish_status` in `config.json`.
+
+Direct publication requires repository Actions secrets named
+`GHOST_ADMIN_URL` and `GHOST_ADMIN_API_KEY`.
 
 LinkedIn sometimes changes its public HTML or blocks unattended requests. A
 blocked fetch fails visibly instead of creating a partial post; paste the URL
