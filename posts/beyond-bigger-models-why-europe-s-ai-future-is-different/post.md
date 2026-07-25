@@ -5,19 +5,6 @@ date: "2026-07-24"
 source: "https://www.linkedin.com/pulse/beyond-bigger-models-why-europes-ai-future-different-slava-tykhonov-7txde"
 tags: ["Slava Tykhonov", "Croissant, Graphs and AI", "AI"]
 ---
-# Beyond Bigger Models: Why Europe's AI Future Is Different
-
-- [Report this article](/uas/login?session_redirect=https%3A%2F%2Fwww.linkedin.com%2Fpulse%2Fbeyond-bigger-models-why-europes-ai-future-different-slava-tykhonov-7txde&trk=article-ssr-frontend-pulse_ellipsis-menu-semaphore-sign-in-redirect&guestReportContentType=PONCHO_ARTICLE&_f=guest-reporting)
-
-[Slava Tykhonov](https://fr.linkedin.com/in/vyacheslavtikhonov)
-![Slava Tykhonov](assets/image-02-9acbdf7ffc.jpg)
-
-### Slava Tykhonov
-
-Published Jul 24, 2026
-
-[+ Follow](https://www.linkedin.com/signup/cold-join?session_redirect=%2Fpulse%2Fbeyond-bigger-models-why-europes-ai-future-different-slava-tykhonov-7txde&trk=article-ssr-frontend-pulse_publisher-author-card)
-
 Today's edition is about what is fundamentally wrong with the current AI data ecosystem, and why I believe the current dominance of U.S. and Chinese AI companies may be temporary, despite the enormous investments being made.
 
 The same question keeps coming up, and I really want to clarify my perspective here. Is Europe falling behind? Is it too slow to catch up with the United States and China in building large AI models?
