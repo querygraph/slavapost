@@ -43,6 +43,32 @@ def slugify(value: str) -> str:
     return value[:100] or "linkedin-post"
 
 
+def promote_section_headings(markdown: str) -> str:
+    """Restore headings flattened by LinkedIn's schema.org articleBody.
+
+    LinkedIn emits section labels as standalone short paragraphs rather than
+    preserving their heading level. Real prose in these articles ends with
+    sentence punctuation; section labels are short and either have no terminal
+    punctuation or are phrased as a question.
+    """
+    paragraphs = markdown.split("\n\n")
+    output = []
+    for paragraph in paragraphs:
+        text = paragraph.strip()
+        words = text.split()
+        is_plain_line = "\n" not in text and not text.startswith(("#", "-", ">", "!["))
+        heading_shape = (
+            2 <= len(words) <= 10
+            and len(text) <= 90
+            and (text.endswith("?") or text[-1:] not in ".!:;")
+        )
+        if is_plain_line and heading_shape:
+            output.append(f"## {text}")
+        else:
+            output.append(paragraph)
+    return "\n\n".join(output)
+
+
 def fetch(session: requests.Session, url: str, *, binary: bool = False):
     response = session.get(url, timeout=45, allow_redirects=True)
     response.raise_for_status()
@@ -164,6 +190,7 @@ def extract(html: str, source_url: str) -> dict:
         start = body_md.find(description)
         if start > 0:
             body_md = body_md[start:].strip()
+    body_md = promote_section_headings(body_md)
     # Do not download author avatars or other LinkedIn chrome removed above.
     images = [(url, alt) for url, alt in images if url in body_md]
     if len(re.sub(r"\s+", "", body_md)) < 500:
