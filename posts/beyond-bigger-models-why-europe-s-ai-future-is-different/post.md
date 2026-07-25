@@ -19,7 +19,7 @@ I have previously outlined, in several discussions, how European-funded projects
 
 Today, I want to emphasize my broader view: in the long run, Europe will not only catch up, but may ultimately lead the way. By focusing on quality, transparency, and verifiability, Europe has the potential to set new standards that could shape the future of AI globally.
 
-Reliability is the key
+## Reliability is the key
 
 The first issue is that it is impossible to build truly reliable AI models without reliable data. Most of today's frontier models are trained on static datasets - collections of information that have been scraped, mined, or aggregated from countless sources. In many cases, we do not know exactly where this data came from, whether it was collected legally, whether it has changed over time, or who is responsible for maintaining it.
 
@@ -41,7 +41,7 @@ This is why I believe that simply building the world's most capable model is not
 
 The United States or China may well succeed in developing increasingly powerful foundation models. They may continue to lead in benchmark performance, model size, and computational resources. However, technological capability alone does not automatically translate into widespread adoption in regulated environments.
 
-Where are baselines?
+## Where are baselines?
 
 If some AI vendors want to become trusted providers within the European Union, they will need to satisfy a completely different set of requirements.
 
@@ -74,7 +74,7 @@ However, every new release also raises a lot of important questions:
 
 These questions often remain unanswered because there is no standardized mechanism for continuous independent evaluation.
 
-Knowledge is moving in time and space
+## Knowledge is moving in time and space
 
 An even bigger concern involves access to knowledge itself.
 
