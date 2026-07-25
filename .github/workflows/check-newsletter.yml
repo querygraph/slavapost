@@ -24,6 +24,17 @@ jobs:
       - run: python -m pip install -r requirements.txt
       - name: Discover and import new editions
         run: python scripts/linkedin_textpack.py --discover --config config.json
+      - name: Publish new editions to QueryGraph.ai
+        env:
+          GHOST_ADMIN_URL: ${{ secrets.GHOST_ADMIN_URL }}
+          GHOST_ADMIN_API_KEY: ${{ secrets.GHOST_ADMIN_API_KEY }}
+        run: |
+          STATUS="$(python -c 'import json; print(json.load(open("config.json"))["publish_status"])')"
+          git status --porcelain -- 'posts/*/post.md' |
+            while read -r change post; do
+              [ -n "$post" ] || continue
+              python scripts/ghost_publish.py "$post" --status "$STATUS"
+            done
       - name: Upload new TextPacks
         uses: actions/upload-artifact@v4
         with:
