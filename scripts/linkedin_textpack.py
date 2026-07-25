@@ -91,10 +91,12 @@ def extract(html: str, source_url: str) -> dict:
             data = obj
             break
 
+    # LinkedIn's JSON-LD "headline" is sometimes the opening paragraph rather
+    # than the visible article title. The public page's h1 is authoritative.
     title = (
-        data.get("headline")
+        (soup.h1.get_text(" ", strip=True) if soup.h1 else "")
         or meta(soup, "og:title", "twitter:title")
-        or (soup.h1.get_text(" ", strip=True) if soup.h1 else "")
+        or data.get("headline")
     )
     author_value = data.get("author", "")
     if isinstance(author_value, dict):
@@ -221,6 +223,16 @@ def build(url: str, out_root: Path, blog: str, tags: list[str]) -> Path:
     body = article["body"]
     for remote, (local, _) in replacements.items():
         body = body.replace(f"]({remote})", f"](assets/{local})")
+    feature_image = ""
+    if article["cover"] in replacements:
+        feature_image = f"assets/{replacements[article['cover']][0]}"
+        # LinkedIn commonly repeats its cover inside the article DOM. Ghost
+        # renders feature_image separately, so remove every inline copy.
+        body = re.sub(
+            rf"!\[[^\]]*\]\({re.escape(feature_image)}\)\s*",
+            "",
+            body,
+        ).strip()
 
     date = ""
     if article["published"]:
@@ -239,8 +251,6 @@ def build(url: str, out_root: Path, blog: str, tags: list[str]) -> Path:
         f'{key}: {json.dumps(value, ensure_ascii=False)}' for key, value in frontmatter.items()
     ] + ["---", ""]
     markdown = "\n".join(yaml_lines)
-    if article["cover"] in replacements:
-        markdown += f"![{article['title']}](assets/{replacements[article['cover']][0]})\n\n"
     markdown += body.rstrip() + f"\n\n---\n\n[Originally published on LinkedIn]({source_url}).\n"
     (post_dir / "post.md").write_text(markdown, encoding="utf-8")
 
@@ -251,6 +261,7 @@ def build(url: str, out_root: Path, blog: str, tags: list[str]) -> Path:
         "source_url": source_url,
         "slug": slug,
         "newsletter": "Croissant, Graphs and AI",
+        "feature_image": feature_image,
     }
     (post_dir / "metadata.json").write_text(
         json.dumps(metadata, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
