@@ -56,14 +56,36 @@ class Ghost:
             raise RuntimeError(f"Ghost {method} {path} failed ({response.status_code}): {detail}")
         return response.json()
 
-    def find_by_slug(self, slug: str):
+    def find_existing(self, slug: str, source_url: str):
         data = self.request(
             "GET",
             "/posts/",
-            params={"filter": f"slug:{slug}", "limit": "1", "formats": "html"},
+            params={"limit": "all", "formats": "html"},
         )
         posts = data.get("posts", [])
-        return posts[0] if posts else None
+        # Source identity survives title/slug corrections and prevents a bad
+        # first import from becoming a permanent duplicate.
+        by_source = [
+            post for post in posts
+            if post.get("canonical_url", "").rstrip("/") == source_url.rstrip("/")
+        ]
+        if by_source:
+            return by_source[0]
+        by_slug = [post for post in posts if post.get("slug") == slug]
+        return by_slug[0] if by_slug else None
+
+    def find_user(self, name: str):
+        data = self.request("GET", "/users/", params={"limit": "all"})
+        exact = [
+            user for user in data.get("users", [])
+            if user.get("name", "").strip().casefold() == name.strip().casefold()
+        ]
+        if not exact:
+            raise RuntimeError(
+                f'Ghost staff author "{name}" was not found. Add this person '
+                "under Ghost Settings → Staff, then rerun the workflow."
+            )
+        return exact[0]
 
     def upload(self, path: Path) -> str:
         mime = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
@@ -106,6 +128,12 @@ def publish(post_path: Path, status: str, ghost_url: str, admin_key: str) -> dic
         if not local.is_file():
             raise RuntimeError(f"Referenced image is missing: {local}")
         uploaded[relative] = ghost.upload(local)
+    feature_image = metadata.get("feature_image", "")
+    if feature_image and feature_image not in uploaded:
+        local = post_dir / feature_image
+        if not local.is_file():
+            raise RuntimeError(f"Feature image is missing: {local}")
+        uploaded[feature_image] = ghost.upload(local)
     for relative, remote in uploaded.items():
         text = text.replace(f"]({relative})", f"]({remote})")
 
@@ -114,7 +142,8 @@ def publish(post_path: Path, status: str, ghost_url: str, admin_key: str) -> dic
         extensions=["extra", "sane_lists", "smarty"],
         output_format="html5",
     )
-    existing = ghost.find_by_slug(metadata["slug"])
+    existing = ghost.find_existing(metadata["slug"], metadata["source_url"])
+    author = ghost.find_user(metadata["author"])
     excerpt = ""
     info_path = post_dir / "dist" / f"{metadata['slug']}.textpack"
     if info_path.exists():
@@ -136,7 +165,15 @@ def publish(post_path: Path, status: str, ghost_url: str, admin_key: str) -> dic
         "tags": tags,
         "custom_excerpt": excerpt[:300] or None,
         "canonical_url": metadata["source_url"],
+        "authors": [{"id": author["id"]}],
     }
+    if feature_image:
+        payload["feature_image"] = uploaded[feature_image]
+        payload["feature_image_alt"] = metadata["title"]
+    if status == "published" and metadata.get("published"):
+        # LinkedIn exposes the calendar date but not a stable publication time.
+        # Noon UTC preserves that date in Ghost across practical time zones.
+        payload["published_at"] = f"{metadata['published']}T12:00:00.000Z"
     result = ghost.publish(payload, existing)
     output = {
         "id": result["id"],
