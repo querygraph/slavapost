@@ -133,7 +133,14 @@ def extract(html: str, source_url: str) -> dict:
             break
 
     images = []
-    if content_node:
+    # Prefer schema.org articleBody when LinkedIn provides it: the surrounding
+    # <article> element also contains its title, author card, avatar, follow
+    # button, and publication chrome, none of which belongs in Ghost content.
+    if body:
+        paragraphs = [p.strip() for p in re.split(r"\n{1,}", body) if p.strip()]
+        body_md = "\n\n".join(paragraphs)
+        images = []
+    elif content_node:
         for unwanted in content_node.select("script, style, nav, form, button"):
             unwanted.decompose()
         for img in content_node.find_all("img"):
@@ -143,9 +150,6 @@ def extract(html: str, source_url: str) -> dict:
                 img["src"] = absolute
                 images.append((absolute, img.get("alt", "").strip()))
         body_md = markdownify(str(content_node), heading_style="ATX", bullets="-")
-    elif body:
-        paragraphs = [p.strip() for p in re.split(r"\n{1,}", body) if p.strip()]
-        body_md = "\n\n".join(paragraphs)
     else:
         raise RuntimeError(
             "Could not locate the public article body. LinkedIn may have changed its HTML."
